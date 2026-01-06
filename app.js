@@ -1,5 +1,7 @@
 // app.js — Quran Learning Premium Reader (cyan-blue theme)
 
+import { getPage, getPageCount } from './firestore.js';
+
 const state = {
   settings: {
     showArabic: true,
@@ -7,12 +9,13 @@ const state = {
     theme: 'day', // default cyan-blue theme
   },
   session: {
-    pageIndex: 0,
+    pageIndex: 0,     // 0-based
     ayahIndex: 0,
     bookmarks: new Set(),
   },
   data: {
-    pages: [], // will be loaded from Firestore or JSON
+    pages: [],        // current page only: [page]
+    totalPages: 604,  // fallback; will try to load from Firestore
   },
 };
 
@@ -80,10 +83,11 @@ function applyTheme() {
 
 // Rendering helpers
 function renderMeta(page) {
-  el.pageLabel.textContent = `Page ${page.pageNumber}`;
-  el.pageCount.textContent = `of ${state.data.pages.length}`;
+  const pageNumber = page.pageNumber ?? (state.session.pageIndex + 1);
+  el.pageLabel.textContent = `Page ${pageNumber}`;
+  el.pageCount.textContent = `of ${state.data.totalPages}`;
   el.surahMeta.textContent = `Surah ${page.surahNumber} • ${page.surahName}`;
-  el.ayahMeta.textContent = `Juz ${page.juz} • Page ${page.pageNumber}`;
+  el.ayahMeta.textContent = `Juz ${page.juz} • Page ${pageNumber}`;
 }
 
 function renderAyah(page, ayahIndex) {
@@ -123,56 +127,89 @@ function renderAyah(page, ayahIndex) {
 }
 
 function renderProgress(pageIndex, ayahIndex) {
-  const pages = state.data.pages;
-  const page = pages[pageIndex];
+  const page = state.data.pages[0];
   el.progressText.textContent = `Ayah ${ayahIndex + 1} of ${page.ayat.length}`;
-  const totalAyat = pages.reduce((sum, p) => sum + p.ayat.length, 0);
-  const readIndex = pages.slice(0, pageIndex).reduce((sum, p) => sum + p.ayat.length, 0) + ayahIndex;
-  const percent = totalAyat ? readIndex / totalAyat : 0;
+
+  // Per-page progress only (since we only hold one page in memory)
+  const percent = ayahIndex / (page.ayat.length - 1 || 1);
   el.readerProgress.textContent = `${formatPercent(percent)} read`;
 }
 
 function render() {
-  const pages = state.data.pages;
-  const pageIndex = clamp(state.session.pageIndex, 0, pages.length - 1);
-  const page = pages[pageIndex];
-  const ayahIndex = clamp(state.session.ayahIndex, 0, page.ayat.length - 1);
+  if (!state.data.pages.length) return;
+  const page = state.data.pages[0];
+
+  const ayahIndex = clamp(
+    state.session.ayahIndex,
+    0,
+    page.ayat.length - 1
+  );
 
   renderMeta(page);
   renderAyah(page, ayahIndex);
-  renderProgress(pageIndex, ayahIndex);
+  renderProgress(state.session.pageIndex, ayahIndex);
 
-  el.prevPage.disabled = pageIndex === 0 && ayahIndex === 0;
-  el.nextPage.disabled = pageIndex === pages.length - 1 && ayahIndex === page.ayat.length - 1;
+  // Prev/Next buttons across pages
+  const isFirstPage = state.session.pageIndex === 0 && ayahIndex === 0;
+  const isLastPage =
+    state.session.pageIndex === state.data.totalPages - 1 &&
+    ayahIndex === page.ayat.length - 1;
+
+  el.prevPage.disabled = isFirstPage;
+  el.nextPage.disabled = isLastPage;
 
   saveSession();
 }
 
+// Firestore loader
+async function loadPage(pageNumber) {
+  const page = await getPage(pageNumber);
+  if (!page) return;
+
+  state.data.pages = [page];
+  state.session.pageIndex = pageNumber - 1; // session uses 0-based
+  state.session.ayahIndex = 0;
+
+  el.pageCount.textContent = `of ${state.data.totalPages}`;
+  render();
+}
+
 // Navigation
-function goPrev() {
+async function goPrev() {
+  const pageNumber = state.session.pageIndex + 1;
+  const page = state.data.pages[0];
+
   if (state.session.ayahIndex > 0) {
     state.session.ayahIndex--;
-  } else if (state.session.pageIndex > 0) {
-    state.session.pageIndex--;
-    state.session.ayahIndex = state.data.pages[state.session.pageIndex].ayat.length - 1;
+    render();
+    return;
   }
-  render();
+
+  if (pageNumber > 1) {
+    const targetPage = pageNumber - 1;
+    await loadPage(targetPage);
+  }
 }
-function goNext() {
-  const page = state.data.pages[state.session.pageIndex];
+
+async function goNext() {
+  const pageNumber = state.session.pageIndex + 1;
+  const page = state.data.pages[0];
+
   if (state.session.ayahIndex < page.ayat.length - 1) {
     state.session.ayahIndex++;
-  } else if (state.session.pageIndex < state.data.pages.length - 1) {
-    state.session.pageIndex++;
-    state.session.ayahIndex = 0;
+    render();
+    return;
   }
-  render();
+
+  if (pageNumber < state.data.totalPages) {
+    const targetPage = pageNumber + 1;
+    await loadPage(targetPage);
+  }
 }
-function jumpToPage(num) {
-  const idx = clamp(num - 1, 0, state.data.pages.length - 1);
-  state.session.pageIndex = idx;
-  state.session.ayahIndex = 0;
-  render();
+
+async function jumpToPage(num) {
+  const target = clamp(num, 1, state.data.totalPages);
+  await loadPage(target);
 }
 
 // Actions
@@ -185,8 +222,8 @@ function toast(message) { /* same as before */ }
 
 // Event bindings
 function bindEvents() {
-  el.prevPage.addEventListener('click', goPrev);
-  el.nextPage.addEventListener('click', goNext);
+  el.prevPage.addEventListener('click', () => goPrev());
+  el.nextPage.addEventListener('click', () => goNext());
   el.jumpBtn.addEventListener('click', () => {
     const val = parseInt(el.pageInput.value, 10);
     if (!Number.isNaN(val)) jumpToPage(val);
@@ -213,20 +250,19 @@ function bindEvents() {
   });
 
   el.toggleTheme.addEventListener('click', () => {
-    // For now we keep only cyan-blue "day" theme
     state.settings.theme = 'day';
     applyTheme();
     render();
   });
 
-  el.resetBtn.addEventListener('click', () => {
+  el.resetBtn.addEventListener('click', async () => {
     localStorage.removeItem(persistKey);
     state.session.pageIndex = 0;
     state.session.ayahIndex = 0;
     state.session.bookmarks = new Set();
     state.settings = { showArabic: true, showTransliteration: false, theme: 'day' };
     applyTheme();
-    render();
+    await loadPage(1);
     toast('Session reset');
   });
 
@@ -243,50 +279,15 @@ function bindEvents() {
   bindEvents();
   applyTheme();
 
-  // Demo data for now — replace with Firestore loader
-  state.data.pages = [
-    {
-      pageNumber: 1,
-      surahNumber: 1,
-      surahName: 'Al-Fatihah',
-      juz: 1,
-      ayat: [
-        {
-          ayahNumber: 1,
-          arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-          english: 'In the name of Allah—the Most Compassionate, Most Merciful.',
-          transliteration: 'Bismi Allāhi ar-Raḥmāni ar-Raḥīm',
-        },
-        {
-          ayahNumber: 2,
-          arabic: 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
-          english: 'All praise is for Allah—Lord of all worlds,',
-          transliteration: 'Al-ḥamdu lillāhi rabbi l-ʿālamīn',
-        },
-      ],
-    },
-    {
-      pageNumber: 2,
-      surahNumber: 1,
-      surahName: 'Al-Fatihah',
-      juz: 1,
-      ayat: [
-        {
-          ayahNumber: 3,
-          arabic: 'الرَّحْمَٰنِ الرَّحِيمِ',
-          english: 'the Most Compassionate, Most Merciful,',
-          transliteration: 'Ar-Raḥmāni ar-Raḥīm',
-        },
-        {
-          ayahNumber: 4,
-          arabic: 'مَالِكِ يَوْمِ الدِّينِ',
-          english: 'Master of the Day of Judgment.',
-          transliteration: 'Māliki yawmi d-dīn',
-        },
-      ],
-    },
-  ];
+  // Try to get total pages from Firestore helper
+  try {
+    const total = await getPageCount();
+    if (typeof total === 'number' && total > 0) {
+      state.data.totalPages = total;
+    }
+  } catch {
+    // keep fallback 604
+  }
 
-  el.pageCount.textContent = `of ${state.data.pages.length}`;
-  render();
+  await loadPage((state.session.pageIndex || 0) + 1);
 })();
