@@ -10,7 +10,7 @@ if (process.argv.length < 3) {
 }
 
 const dataPath = process.argv[2];
-const serviceAccount = require('./serviceAccount.json'); // rename your downloaded JSON
+const serviceAccount = require('./iquran.json'); // rename your downloaded JSON
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
