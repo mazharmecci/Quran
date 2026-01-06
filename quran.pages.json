@@ -1,0 +1,46 @@
+[
+  {
+    "pageNumber": 1,
+    "juz": 1,
+    "surahNumber": 1,
+    "surahName": "Al-Fatihah",
+    "ayat": [
+      {
+        "ayahNumber": 1,
+        "arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+        "english": "In the name of Allah—the Most Compassionate, Most Merciful.",
+        "transliteration": "Bismi Allāhi ar-Raḥmāni ar-Raḥīm",
+        "audioUrl": ""
+      },
+      {
+        "ayahNumber": 2,
+        "arabic": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        "english": "All praise is for Allah—Lord of all worlds,",
+        "transliteration": "Al-ḥamdu lillāhi rabbi l-ʿālamīn",
+        "audioUrl": ""
+      }
+    ]
+  },
+  {
+    "pageNumber": 2,
+    "juz": 1,
+    "surahNumber": 1,
+    "surahName": "Al-Fatihah",
+    "ayat": [
+      {
+        "ayahNumber": 3,
+        "arabic": "الرَّحْمَٰنِ الرَّحِيمِ",
+        "english": "the Most Compassionate, Most Merciful,",
+        "transliteration": "Ar-Raḥmāni ar-Raḥīm",
+        "audioUrl": ""
+      },
+      {
+        "ayahNumber": 4,
+        "arabic": "مَالِكِ يَوْمِ الدِّينِ",
+        "english": "Master of the Day of Judgment.",
+        "transliteration": "Māliki yawmi d-dīn",
+        "audioUrl": ""
+      }
+    ]
+  }
+]
