@@ -1,46 +1,50 @@
-[
-  {
-    "pageNumber": 1,
-    "juz": 1,
-    "surahNumber": 1,
-    "surahName": "Al-Fatihah",
-    "ayat": [
-      {
-        "ayahNumber": 1,
-        "arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-        "english": "In the name of Allah—the Most Compassionate, Most Merciful.",
-        "transliteration": "Bismi Allāhi ar-Raḥmāni ar-Raḥīm",
-        "audioUrl": ""
-      },
-      {
-        "ayahNumber": 2,
-        "arabic": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-        "english": "All praise is for Allah—Lord of all worlds,",
-        "transliteration": "Al-ḥamdu lillāhi rabbi l-ʿālamīn",
-        "audioUrl": ""
-      }
-    ]
-  },
-  {
-    "pageNumber": 2,
-    "juz": 1,
-    "surahNumber": 1,
-    "surahName": "Al-Fatihah",
-    "ayat": [
-      {
-        "ayahNumber": 3,
-        "arabic": "الرَّحْمَٰنِ الرَّحِيمِ",
-        "english": "the Most Compassionate, Most Merciful,",
-        "transliteration": "Ar-Raḥmāni ar-Raḥīm",
-        "audioUrl": ""
-      },
-      {
-        "ayahNumber": 4,
-        "arabic": "مَالِكِ يَوْمِ الدِّينِ",
-        "english": "Master of the Day of Judgment.",
-        "transliteration": "Māliki yawmi d-dīn",
-        "audioUrl": ""
-      }
-    ]
-  }
-]
+{
+  "pageNumber": 1,
+  "juz": 1,
+  "surahNumber": 1,
+  "surahName": "Al-Fatihah",
+  "ayat": [
+    {
+      "ayahNumber": 1,
+      "arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+      "english": "In the name of Allah—the Most Compassionate, Most Merciful.",
+      "transliteration": "Bismi Allāhi ar-Raḥmāni ar-Raḥīm"
+    },
+    {
+      "ayahNumber": 2,
+      "arabic": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+      "english": "All praise is for Allah—Lord of all worlds,",
+      "transliteration": "Al-ḥamdu lillāhi rabbi l-ʿālamīn"
+    },
+    {
+      "ayahNumber": 3,
+      "arabic": "الرَّحْمَٰنِ الرَّحِيمِ",
+      "english": "the Most Compassionate, Most Merciful,",
+      "transliteration": "Ar-Raḥmāni ar-Raḥīm"
+    },
+    {
+      "ayahNumber": 4,
+      "arabic": "مَالِكِ يَوْمِ الدِّينِ",
+      "english": "Master of the Day of Judgment.",
+      "transliteration": "Māliki yawmi d-dīn"
+    },
+    {
+      "ayahNumber": 5,
+      "arabic": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+      "english": "You alone we worship and You alone we ask for help.",
+      "transliteration": "Iyyāka naʿbudu wa iyyāka nastaʿīn"
+    },
+    {
+      "ayahNumber": 6,
+      "arabic": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+      "english": "Guide us to the straight path—",
+      "transliteration": "Ihdinā ṣ-ṣirāṭa l-mustaqīm"
+    },
+    {
+      "ayahNumber": 7,
+      "arabic": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+      "english": "the path of those You have blessed—not those You are displeased with, or who are astray.",
+      "transliteration": "Ṣirāṭa alladhīna anʿamta ʿalayhim ghayri l-maghḍūbi ʿalayhim wa lā ḍ-ḍāllīn"
+    }
+  ]
+}
