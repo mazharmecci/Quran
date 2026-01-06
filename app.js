@@ -120,14 +120,13 @@ function loadSession() {
 }
 
 // Theme
-function applyTheme() {
-  const isNight = state.settings.theme === 'night';
-  document.body.style.background = isNight
-    ? 'radial-gradient(1200px 800px at 20% -10%, #0c1218 0%, #0b0f14 40%, #0a0d12 100%)'
-    : 'radial-gradient(1200px 800px at 20% -10%, #f7f9fc 0%, #f2f5f9 40%, #eef2f7 100%)';
-  el.toggleTheme.textContent = `Theme: ${isNight ? 'Night' : 'Day'}`;
-  el.toggleTheme.setAttribute('aria-pressed', String(isNight));
-}
+  state.settings.theme = 'day';
+  function applyTheme() {
+    document.body.style.background =
+      'radial-gradient(1200px 800px at 20% -10%, #f0f6fb 0%, #f3f7fb 40%, #eef4fa 100%)';
+    el.toggleTheme.textContent = 'Theme: Day';
+    el.toggleTheme.setAttribute('aria-pressed', 'false');
+  }
 
 // Rendering
 function render() {
