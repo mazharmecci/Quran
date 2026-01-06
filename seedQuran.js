@@ -1,16 +1,19 @@
 // seedQuran.js
-// Usage: node seedQuran.js path/to/quran-pages.json
+// Usage examples:
+//   node seedQuran.js quran.page.1.json
+//   node seedQuran.js quran.page.1.json quran.page.2.json quran.pages.json
 
 const fs = require('fs');
+const path = require('path');
 const admin = require('firebase-admin');
 
 if (process.argv.length < 3) {
-  console.error('Provide path to quran-pages.json');
+  console.error('❌ Please provide one or more JSON files containing Quran pages.');
+  console.error('   Example: node seedQuran.js quran.page.1.json quran.page.2.json');
   process.exit(1);
 }
 
-const dataPath = process.argv[2];
-const serviceAccount = require('./iquran.json'); // rename your downloaded JSON
+const serviceAccount = require('./iquran.json'); // your Firebase service account
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -24,11 +27,13 @@ async function seedPages(pages) {
 
   for (const page of pages) {
     const docRef = db.collection('pages').doc(String(page.pageNumber));
+
     // Validate minimal fields
     if (!page.pageNumber || !page.ayat || !Array.isArray(page.ayat)) {
-      console.warn(`Skipping invalid page:`, page.pageNumber);
+      console.warn(`⚠️ Skipping invalid page:`, page.pageNumber);
       continue;
     }
+
     // Normalize ayat fields
     const normalizedAyat = page.ayat.map(a => ({
       ayahNumber: a.ayahNumber,
@@ -50,30 +55,42 @@ async function seedPages(pages) {
     count++;
     if (count % batchSize === 0) {
       await batch.commit();
-      console.log(`Committed ${count} pages...`);
+      console.log(`✅ Committed ${count} pages so far...`);
       batch = db.batch();
     }
   }
 
   if (count % batchSize !== 0) {
     await batch.commit();
-    console.log(`Committed final batch. Total pages: ${count}`);
+    console.log(`✅ Committed final batch. Total pages: ${count}`);
   }
 }
 
 async function main() {
-  const raw = fs.readFileSync(dataPath, 'utf8');
-  const pages = JSON.parse(raw);
+  let totalPages = 0;
 
-  if (!Array.isArray(pages)) {
-    throw new Error('JSON must be an array of page objects');
+  // Loop through all provided files
+  for (let i = 2; i < process.argv.length; i++) {
+    const dataPath = process.argv[i];
+    const absPath = path.resolve(dataPath);
+
+    console.log(`📖 Loading file: ${absPath}`);
+    const raw = fs.readFileSync(absPath, 'utf8');
+    const pages = JSON.parse(raw);
+
+    if (!Array.isArray(pages)) {
+      console.error(`❌ File ${dataPath} must contain an array of page objects`);
+      continue;
+    }
+
+    await seedPages(pages);
+    totalPages += pages.length;
   }
 
-  await seedPages(pages);
-  console.log('Seeding complete.');
+  console.log(`🎉 Seeding complete. Total pages processed: ${totalPages}`);
 }
 
 main().catch(err => {
-  console.error(err);
+  console.error('❌ Error during seeding:', err);
   process.exit(1);
 });
