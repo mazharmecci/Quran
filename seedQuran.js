@@ -21,24 +21,22 @@ admin.initializeApp({
 const db = admin.firestore();
 
 async function seedPages(pages) {
-  const batchSize = 400; // safe batch size
+  const batchSize = 400;
   let batch = db.batch();
   let count = 0;
 
   for (const page of pages) {
-    const docRef = db.collection('pages').doc(String(page.pageNumber));
-
-    // Validate minimal fields
-    if (!page.pageNumber || !page.ayat || !Array.isArray(page.ayat)) {
+    if (!page.pageNumber || !Array.isArray(page.ayat)) {
       console.warn(`⚠️ Skipping invalid page:`, page.pageNumber);
       continue;
     }
 
-    // Normalize ayat fields
-    const normalizedAyat = page.ayat.map(a => ({
-      ayahNumber: a.ayahNumber,
-      arabic: a.arabic,
-      english: a.english,
+    const docRef = db.collection('pages').doc(String(page.pageNumber));
+
+    const normalizedAyat = page.ayat.map((a, i) => ({
+      ayahNumber: a.ayahNumber ?? i + 1,
+      arabic: a.arabic ?? '',
+      english: a.english ?? '',
       transliteration: a.transliteration ?? '',
       audioUrl: a.audioUrl ?? '',
       tags: Array.isArray(a.tags) ? a.tags : [],
@@ -69,18 +67,16 @@ async function seedPages(pages) {
 async function main() {
   let totalPages = 0;
 
-  // Loop through all provided files
   for (let i = 2; i < process.argv.length; i++) {
     const dataPath = process.argv[i];
     const absPath = path.resolve(dataPath);
 
     console.log(`📖 Loading file: ${absPath}`);
     const raw = fs.readFileSync(absPath, 'utf8');
-    const pages = JSON.parse(raw);
+    let pages = JSON.parse(raw);
 
     if (!Array.isArray(pages)) {
-      console.error(`❌ File ${dataPath} must contain an array of page objects`);
-      continue;
+      pages = [pages]; // wrap single object
     }
 
     await seedPages(pages);
